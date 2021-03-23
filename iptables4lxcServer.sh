@@ -1,9 +1,9 @@
 #!/bin/bash
 
-IPTABLES="echo iptables"## remove echo to use
+IPTABLES="echo iptables" ## remove echo to use
 IN_INT="enp3s0" ## internet side interface
 CONTAINER_NAME="web1" ## lxc container name
-LOCAL_NET="x.y.z.s/27"## fill your public network
+LOCAL_NET="x.y.z.s/27" ## fill your public network
 ACCPEPT_ROOT_LOCAL_NET_PORTS="22 1080" ## ports to open the root server from local network
 ACCPEPT_ROOT_FROM_WORLDPORTS="" ## ports to open the root server from world wide network
 ACCPEPT_CONTAINER_PORTS="80 110" ## port to open and DNAT to lxc container
