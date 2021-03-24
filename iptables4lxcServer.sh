@@ -1,16 +1,8 @@
 #!/bin/bash
 
 
-IPTABLES="echo iptables" ## remove echo to use
-IN_INT="enp3s0" ## internet side interface
-CONTAINER_NAME="web1" ## lxc container name
-LOCAL_NET="x.y.z.s/27" ## fill your public network
-ACCPEPT_ROOT_LOCAL_NET_PORTS="22 873 49" ## ports to open the root server from local network
-ACCPEPT_ROOT_FROM_WORLDPORTS="" ## ports to open the root server from world wide network
-ACCPEPT_CONTAINER_PORTS="" ## port to open and DNAT to lxc container 
-ACCPEPT_LOCAL_NET_PORTS="80 110 443 8080" ## port to open and DNAT to lxc container
+. ./config
 WORLD_NET="0.0.0.0/0"
-
 PUBIP=$(ip a show dev $IN_INT | grep inet\ | awk '{print $2}' | cut -f 1 -d\/)
 CONTAINERIP=$(lxc-info $CONTAINER_NAME -iH)
 
@@ -50,12 +42,12 @@ for PORT in $ACCPEPT_ROOT_FROM_WORLDPORTS; do
     acceptRulesFrom $PORT $MOD $WORLD_NET
 done
 
-for PORT in $ACCPEPT_CONTAINER_PORTS; do
-    natContainer $PORT $MOD $LOCAL_NET
+for PORT in $ACCPEPT_WORLD_CONTAINER_PORTS; do
+    natContainer $PORT $MOD $WORLD_NET
 done
 
 for PORT in $ACCPEPT_LOCAL_NET_PORTS; do
-    natContainer $PORT $MOD $WORLD_NET
+    natContainer $PORT $MOD $LOCAL_NET
 done
 
 
