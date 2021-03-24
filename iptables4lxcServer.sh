@@ -1,12 +1,14 @@
 #!/bin/bash
 
+
 IPTABLES="echo iptables" ## remove echo to use
 IN_INT="enp3s0" ## internet side interface
 CONTAINER_NAME="web1" ## lxc container name
 LOCAL_NET="x.y.z.s/27" ## fill your public network
-ACCPEPT_ROOT_LOCAL_NET_PORTS="22 1080" ## ports to open the root server from local network
+ACCPEPT_ROOT_LOCAL_NET_PORTS="22 873 49" ## ports to open the root server from local network
 ACCPEPT_ROOT_FROM_WORLDPORTS="" ## ports to open the root server from world wide network
-ACCPEPT_CONTAINER_PORTS="80 110" ## port to open and DNAT to lxc container
+ACCPEPT_CONTAINER_PORTS="" ## port to open and DNAT to lxc container 
+ACCPEPT_LOCAL_NET_PORTS="80 110 443 8080" ## port to open and DNAT to lxc container
 WORLD_NET="0.0.0.0/0"
 
 PUBIP=$(ip a show dev $IN_INT | grep inet\ | awk '{print $2}' | cut -f 1 -d\/)
@@ -23,8 +25,9 @@ acceptRulesFrom() {
 natContainer(){
     DPORT=$1
     MOD=$2
-    $IPTABLES -t nat $MOD PREROUTING -d $PUBIP -p tcp -m tcp --dport $DPORT -j DNAT --to-destination $CONTAINERIP
-    $IPTABLES $MOD FORWARD -p tcp -m tcp --dport $DPORT -d $CONTAINERIP  -j ACCEPT
+    SOURCE=$3
+    $IPTABLES -t nat $MOD PREROUTING -s $SOURCE -d $PUBIP -p tcp -m tcp --dport $DPORT -j DNAT --to-destination $CONTAINERIP
+    $IPTABLES $MOD FORWARD -s $SOURCE -p tcp -m tcp --dport $DPORT -d $CONTAINERIP  -j ACCEPT
 }
 
 updateIptables(){
@@ -48,8 +51,13 @@ for PORT in $ACCPEPT_ROOT_FROM_WORLDPORTS; do
 done
 
 for PORT in $ACCPEPT_CONTAINER_PORTS; do
-    natContainer $PORT $MOD
+    natContainer $PORT $MOD $LOCAL_NET
 done
+
+for PORT in $ACCPEPT_LOCAL_NET_PORTS; do
+    natContainer $PORT $MOD $WORLD_NET
+done
+
 
 }
 
